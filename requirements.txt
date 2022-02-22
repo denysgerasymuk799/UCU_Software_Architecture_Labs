@@ -1,4 +1,7 @@
-fastapi
-uvicorn
+fastapi~=0.74.1
+uvicorn~=0.17.5
 jsonpickle
-flask
+flask~=2.0.3
+requests
+aiohttp~=3.8.1
+pydantic~=1.9.0

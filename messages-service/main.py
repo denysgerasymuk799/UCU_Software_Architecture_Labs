@@ -1,4 +1,3 @@
-from flask import make_response, request, abort, Response
 from flask import Flask, jsonify
 
 
@@ -13,12 +12,10 @@ def get_messages():
         "response": "not implemented yet"
     }
     return jsonify(response), status
-    # return Response(response, 200)
 
 
 @app.route('/message-svc/api/v1.0/post_messages', methods=['POST'])
 def post_messages():
-    # abort(Response('POST request is not supported yet', 304))
     status = 404
     response = {
         "_status_code": status,
