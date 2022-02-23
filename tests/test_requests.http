@@ -1,3 +1,37 @@
+### Test facade-service
+POST http://localhost:8080/add_message
+Content-Type: application/json
+
+{
+  "message": "msg3"
+}
+###
+POST http://localhost:8080/add_message
+Content-Type: application/json
+
+{
+  "message": 123
+}
+###
+POST http://localhost:8080/add_message
+Content-Type: application/json
+
+{
+  "message": {
+    "test": 123
+  }
+}
+###
+POST http://localhost:8080/add_message
+Content-Type: application/json
+
+{
+  "message": []
+}
+
+
+
+### Test logging-service
 POST http://localhost:8081/logging-svc/api/v1.0/add_message
 Content-Type: application/json
 
@@ -18,8 +52,10 @@ Content-Type: application/json
 
 GET http://localhost:8081/logging-svc/api/v1.0/get_messages
 Accept: text/json
-###
 
+
+
+### Test message-service
 GET http://localhost:8082/message-svc/api/v1.0/get_messages
 Accept: text/json
 ###

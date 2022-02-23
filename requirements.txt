@@ -3,5 +3,6 @@ uvicorn~=0.17.5
 jsonpickle
 flask~=2.0.3
 requests
+httpx
 aiohttp~=3.8.1
 pydantic~=1.9.0

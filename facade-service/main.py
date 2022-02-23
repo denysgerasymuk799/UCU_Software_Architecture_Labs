@@ -1,100 +1,108 @@
 import uuid
-import aiohttp
 import asyncio
+import httpx
+import logging
 
-from fastapi import FastAPI, Request, Depends
+from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
-from flask import jsonify
-from pydantic import BaseModel
+
+from utils import use_response_template, Message
+from custom_logger import MyHandler
+from constants import *
+
+# initial configurations
+app = FastAPI(title='Facade-service')
+
+logger = logging.getLogger('root')
+logger.setLevel('INFO')
+logging.disable(logging.DEBUG)
+logger.addHandler(MyHandler())
 
 
-class Message(BaseModel):
-    message: str
+async def get_request(client: httpx.AsyncClient, url: str):
+    """
+    Async GET request
+    """
+    response = await client.get(url)
+    logger.info(f'Responses from services for GET request: \nheaders: {response.headers}\ncontext: {response.json()}\n')
+    return response.json()
 
 
-app = FastAPI()
-# session = None
-
-# constants
-MESSAGES_SERVICE_ADDR = 'http://localhost:8082/message-svc/api/v1.0'
-LOGGING_SERVICE_ADDR = 'http://localhost:8081/logging-svc/api/v1.0'
-LOGGING_SERVICE_GET_MSGS_ENTRYPOINT = '/get_messages'
-LOGGING_SERVICE_ADD_MSG_ENTRYPOINT = '/add_message'
-MESSAGES_SERVICE_GET_MSGS_ENTRYPOINT = '/get_messages'
-MESSAGES_SERVICE_ADD_MSG_ENTRYPOINT = '/add_message'
+async def post_request(client: httpx.AsyncClient, url: str, msg_dict: dict):
+    """
+    Async POST request
+    """
+    response = await client.post(url, json=msg_dict)
+    logger.info(f'Responses from services for POST request: \nheaders: {response.headers}\ncontext: {response.json()}\n')
+    return response.json()
 
 
-# @app.on_event('startup')
-# async def startup_event():
-#     global session
-#     session = aiohttp.ClientSession()
-#
-#
-# @app.on_event('shutdown')
-# async def shutdown_event():
-#     await session.close()
-
-
-class HttpClient:
-    session: aiohttp.ClientSession = None
-
-    def start(self):
-        self.session = aiohttp.ClientSession()
-
-    async def stop(self):
-        await self.session.close()
-        self.session = None
-
-    def __call__(self) -> aiohttp.ClientSession:
-        assert self.session is not None
-        return self.session
-
-
-http_client = HttpClient()
-
-
-@app.on_event("startup")
-async def startup():
-    http_client.start()
+@app.exception_handler(Exception)
+def validation_exception_handler(request: Request, err):
+    base_error_message = f"Failed to execute: {request.method}: {request.url}"
+    return JSONResponse(status_code=400, content={"message": f"{base_error_message}. Detail: {err}"})
 
 
 @app.get('/get_messages', response_class=JSONResponse)
 async def get_messages(request: Request):
+    """
+    Get all messages from logging-service and response on GET request from message-service
+
+    :return: Concatenated responses from services in JSON format
+    """
+    logging_svc_url = LOGGING_SERVICE_ADDR + LOGGING_SERVICE_GET_MSGS_ENTRYPOINT
+    message_svc_url = MESSAGES_SERVICE_ADDR + MESSAGES_SERVICE_GET_MSGS_ENTRYPOINT
+
+    result_str = ""
+    async with httpx.AsyncClient() as client:
+        tasks = [get_request(client, url) for url in [logging_svc_url, message_svc_url]]
+        responses = await asyncio.gather(*tasks)
+
+    # concatenate responses
+    for resp in responses:
+        if resp['_status_code'] == 200:
+            result_str += f'Response from {resp["component"]}: {resp["response"]}\n'
+        else:
+            status = 400
+            response = use_response_template(status=status, resp_msg=f'Bad request from {resp["component"]}')
+            return JSONResponse(content=response, status_code=status)
+
     status = 200
-    response = {
-        "_status_code": status,
-        "response": ''
-    }
+    response = use_response_template(status=status, resp_msg=result_str)
     return JSONResponse(content=response, status_code=status)
 
 
 @app.post('/add_message')
-async def add_message(msg: Message, new_http_client: aiohttp.ClientSession = Depends(http_client)):
-    print('start')
+async def add_message(msg: Message):
+    """
+    Add a message to in-memory dict in logging-service.
+    Note if input message type is numeric, so it will be casted to string,
+     but if it is an object, then you get type error.
+
+    :return: JSON with status and response text
+    """
     msg = msg.dict()['message']
     if not isinstance(msg, str):
         status = 400
-        response = {
-            "_status_code": status,
-            "response": "Incorrect input argument"
-        }
+        response = use_response_template(status=status, resp_msg="Incorrect input argument")
         return JSONResponse(content=response, status_code=status)
 
-    msg_dict = {repr(uuid.uuid1()): msg}
-    print('msg_dict -- ', msg_dict)
+    # generate message dict for logging-service
+    msg_dict = {uuid.uuid1().__str__(): msg}
+    logger.debug(f'Generated msg_dict: {msg_dict}')
     url = LOGGING_SERVICE_ADDR + LOGGING_SERVICE_ADD_MSG_ENTRYPOINT
 
-    response = await new_http_client.post(url, data=jsonify(msg_dict))
-    print(response.json())
-    # async with session.post(url, data=jsonify(msg_dict)) as response:
-    #     resp = await response.json()
-    #     print(resp)
+    async with httpx.AsyncClient() as client:
+        tasks = [post_request(client, url, msg_dict)]
+        responses = await asyncio.gather(*tasks)
+        logger.info(f'Responses from services for GET request: {responses}')
 
-    status = 200
-    response = {
-        "_status_code": status,
-        "response": "OK"
-    }
+    if responses[0]['_status_code'] == 200:
+        status = 200
+        response = use_response_template(status=status, resp_msg="OK")
+    else:
+        status = 400
+        response = use_response_template(status=status, resp_msg="Incorrect input argument")
     return JSONResponse(content=response, status_code=status)
 
 
