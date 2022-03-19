@@ -1,3 +1,6 @@
+"""
+Demonstration of Distributed Map workflow
+"""
 import hazelcast
 
 

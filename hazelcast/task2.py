@@ -1,3 +1,6 @@
+"""
+Demonstration of Distributed Map with locks workflow
+"""
 import hazelcast
 
 from multiprocessing import Process

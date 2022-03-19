@@ -1,8 +1,11 @@
+"""
+Demonstration of producer workflow with Bounded Queue
+"""
 import hazelcast
 import threading
 
 client = hazelcast.HazelcastClient()
-queue = client.get_queue("queue_v2")
+queue = client.get_queue("queue_v2.0").blocking()
 
 
 def produce():
