@@ -1,5 +1,7 @@
 # UCU_Software_Architecture_Labs
 
-## Implemented tasks
+## Implemented Labs
 
-* **Task 1:** Microservices Basics
+✅ **Lab 1:** Microservices Basics
+
+✅ **Lab 2:** Hazelcast Basics
