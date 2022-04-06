@@ -1,3 +1,4 @@
+import random
 import uuid
 import asyncio
 import httpx
@@ -34,7 +35,8 @@ async def _get_messages(request: Request):
 
     :return: Concatenated responses from services in JSON format
     """
-    logging_svc_url = LOGGING_SERVICE_ADDR + LOGGING_SERVICE_GET_MSGS_ENTRYPOINT
+    random_logging_addr = random.choice([LOGGING_SERVICE_ADDR_1, LOGGING_SERVICE_ADDR_2, LOGGING_SERVICE_ADDR_3])
+    logging_svc_url = random_logging_addr + LOGGING_SERVICE_GET_MSGS_ENTRYPOINT
     message_svc_url = MESSAGES_SERVICE_ADDR + MESSAGES_SERVICE_GET_MSGS_ENTRYPOINT
 
     result_str = ""
@@ -67,7 +69,9 @@ async def _add_message(msg: str):
     # generate message dict for logging-service
     msg_dict = {uuid.uuid1().__str__(): msg}
     logger.debug(f'Generated msg_dict: {msg_dict}')
-    url = LOGGING_SERVICE_ADDR + LOGGING_SERVICE_ADD_MSG_ENTRYPOINT
+
+    random_logging_addr = random.choice([LOGGING_SERVICE_ADDR_1, LOGGING_SERVICE_ADDR_2, LOGGING_SERVICE_ADDR_3])
+    url = random_logging_addr + LOGGING_SERVICE_ADD_MSG_ENTRYPOINT
 
     async with httpx.AsyncClient() as client:
         tasks = [post_request(client, url, msg_dict)]
