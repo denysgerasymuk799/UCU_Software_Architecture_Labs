@@ -1,22 +1,12 @@
 import uuid
 import asyncio
 import httpx
-import logging
-
-from fastapi import FastAPI, Request
+from fastapi import Request
 from fastapi.responses import JSONResponse
 
-from utils import use_response_template, Message
-from custom_logger import MyHandler
 from constants import *
-
-# initial configurations
-app = FastAPI(title='Facade-service')
-
-logger = logging.getLogger('root')
-logger.setLevel('INFO')
-logging.disable(logging.DEBUG)
-logger.addHandler(MyHandler())
+from init_config import logger
+from utils import use_response_template
 
 
 async def get_request(client: httpx.AsyncClient, url: str):
@@ -33,18 +23,12 @@ async def post_request(client: httpx.AsyncClient, url: str, msg_dict: dict):
     Async POST request
     """
     response = await client.post(url, json=msg_dict)
-    logger.info(f'Responses from services for POST request: \nheaders: {response.headers}\ncontext: {response.json()}\n')
+    logger.info(f'Responses from services for POST request: \n'
+                f'headers: {response.headers}\ncontext: {response.json()}\n')
     return response.json()
 
 
-@app.exception_handler(Exception)
-def validation_exception_handler(request: Request, err):
-    base_error_message = f"Failed to execute: {request.method}: {request.url}"
-    return JSONResponse(status_code=400, content={"message": f"{base_error_message}. Detail: {err}"})
-
-
-@app.get('/get_messages', response_class=JSONResponse)
-async def get_messages(request: Request):
+async def _get_messages(request: Request):
     """
     Get all messages from logging-service and response on GET request from message-service
 
@@ -72,8 +56,7 @@ async def get_messages(request: Request):
     return JSONResponse(content=response, status_code=status)
 
 
-@app.post('/add_message')
-async def add_message(msg: Message):
+async def _add_message(msg: str):
     """
     Add a message to in-memory dict in logging-service.
     Note if input message type is numeric, so it will be casted to string,
@@ -81,12 +64,6 @@ async def add_message(msg: Message):
 
     :return: JSON with status and response text
     """
-    msg = msg.dict()['message']
-    if not isinstance(msg, str):
-        status = 400
-        response = use_response_template(status=status, resp_msg="Incorrect input argument")
-        return JSONResponse(content=response, status_code=status)
-
     # generate message dict for logging-service
     msg_dict = {uuid.uuid1().__str__(): msg}
     logger.debug(f'Generated msg_dict: {msg_dict}')
@@ -104,8 +81,3 @@ async def add_message(msg: Message):
         status = 400
         response = use_response_template(status=status, resp_msg="Incorrect input argument")
     return JSONResponse(content=response, status_code=status)
-
-
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, port=8080)
