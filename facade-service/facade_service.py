@@ -40,9 +40,12 @@ async def _get_messages(request: Request):
     message_svc_url = MESSAGES_SERVICE_ADDR + MESSAGES_SERVICE_GET_MSGS_ENTRYPOINT
 
     result_str = ""
-    async with httpx.AsyncClient() as client:
-        tasks = [get_request(client, url) for url in [logging_svc_url, message_svc_url]]
-        responses = await asyncio.gather(*tasks)
+    try:
+        async with httpx.AsyncClient() as client:
+            tasks = [get_request(client, url) for url in [logging_svc_url, message_svc_url]]
+            responses = await asyncio.gather(*tasks)
+    except Exception as err:
+        responses = [{"component": 'ANY_COMPONENT', '_status_code': 400, 'error': err}]
 
     # concatenate responses
     for resp in responses:
@@ -50,7 +53,9 @@ async def _get_messages(request: Request):
             result_str += f'Response from {resp["component"]}: {resp["response"]}\n'
         else:
             status = 400
-            response = use_response_template(status=status, resp_msg=f'Bad request from {resp["component"]}')
+            error_message = ', error: ' + str(resp['error']) if resp.get('error', None) else ''
+            response = use_response_template(status=status,
+                                             resp_msg=f'Bad request from {resp["component"]}{error_message}')
             return JSONResponse(content=response, status_code=status)
 
     status = 200
@@ -73,15 +78,20 @@ async def _add_message(msg: str):
     random_logging_addr = random.choice([LOGGING_SERVICE_ADDR_1, LOGGING_SERVICE_ADDR_2, LOGGING_SERVICE_ADDR_3])
     url = random_logging_addr + LOGGING_SERVICE_ADD_MSG_ENTRYPOINT
 
-    async with httpx.AsyncClient() as client:
-        tasks = [post_request(client, url, msg_dict)]
-        responses = await asyncio.gather(*tasks)
-        logger.info(f'Responses from services for GET request: {responses}')
+    try:
+        async with httpx.AsyncClient() as client:
+            tasks = [post_request(client, url, msg_dict)]
+            responses = await asyncio.gather(*tasks)
+            logger.info(f'Responses from services for GET request: {responses}')
+    except Exception as err:
+        responses = [{'_status_code': 400, 'error': err}]
 
     if responses[0]['_status_code'] == 200:
         status = 200
         response = use_response_template(status=status, resp_msg="OK")
     else:
         status = 400
-        response = use_response_template(status=status, resp_msg="Incorrect input argument")
+        error_message = ', error: ' + str(responses[0]['error']) if responses[0].get('error', None) else ''
+        response = use_response_template(status=status,
+                                         resp_msg="Incorrect input argument or server does not respond" + error_message)
     return JSONResponse(content=response, status_code=status)
