@@ -6,6 +6,8 @@
 
 ✅ **Lab 2:** Hazelcast Basics
 
+✅ **Lab 3:** Microservices with Hazelcast
+
 
 ## How to run the project
 
