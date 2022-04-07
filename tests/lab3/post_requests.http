@@ -1,0 +1,79 @@
+POST http://localhost:8081/add_message
+Content-Type: application/json
+
+{
+  "message": "msg1"
+}
+###
+
+POST http://localhost:8081/add_message
+Content-Type: application/json
+
+{
+  "message": "msg2"
+}
+###
+
+POST http://localhost:8081/add_message
+Content-Type: application/json
+
+{
+  "message": "msg3"
+}
+###
+
+POST http://localhost:8081/add_message
+Content-Type: application/json
+
+{
+  "message": "msg4"
+}
+###
+
+POST http://localhost:8081/add_message
+Content-Type: application/json
+
+{
+  "message": "msg5"
+}
+###
+
+POST http://localhost:8081/add_message
+Content-Type: application/json
+
+{
+  "message": "msg6"
+}
+###
+
+POST http://localhost:8081/add_message
+Content-Type: application/json
+
+{
+  "message": "msg7"
+}
+###
+
+POST http://localhost:8081/add_message
+Content-Type: application/json
+
+{
+  "message": "msg8"
+}
+###
+
+POST http://localhost:8081/add_message
+Content-Type: application/json
+
+{
+  "message": "msg9"
+}
+###
+
+POST http://localhost:8081/add_message
+Content-Type: application/json
+
+{
+  "message": "msg10"
+}
+###
