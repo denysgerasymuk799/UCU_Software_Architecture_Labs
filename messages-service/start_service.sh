@@ -1,1 +1,1 @@
-uvicorn message_controller:app --workers 2 --reload --port ${1}
+uvicorn message_controller:app --workers 4 --reload --port ${1}

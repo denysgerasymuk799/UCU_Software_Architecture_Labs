@@ -44,6 +44,7 @@ async def _get_messages(request: Request):
     try:
         async with httpx.AsyncClient() as client:
             tasks = [get_request(client, url) for url in [logging_svc_url, message_svc_url]]
+            # tasks = [get_request(client, url) for url in [logging_svc_url]]
             responses = await asyncio.gather(*tasks)
     except Exception as err:
         responses = [{"component": 'ANY_COMPONENT', '_status_code': 400, 'error': err}]
