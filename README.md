@@ -8,6 +8,8 @@
 
 ✅ **Lab 3:** Microservices with Hazelcast
 
+**Lab 4:** Microservices with Messaging queue
+
 
 ## How to run the project
 
