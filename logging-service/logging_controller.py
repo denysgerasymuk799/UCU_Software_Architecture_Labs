@@ -2,7 +2,7 @@ from fastapi import Request
 from fastapi.responses import JSONResponse
 
 from init_config import app
-from logging_service import _get_messages, _add_message
+from domain_logic.logging_service import _get_messages, _add_message
 
 
 @app.get('/logging-svc/api/v1.0/get_messages', response_class=JSONResponse)

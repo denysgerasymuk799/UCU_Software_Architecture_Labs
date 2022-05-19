@@ -7,3 +7,4 @@ httpx
 aiohttp~=3.8.1
 pydantic~=1.9.0
 gunicorn
+hazelcast-python-client==5.1
