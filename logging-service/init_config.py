@@ -2,7 +2,7 @@ import logging
 import hazelcast
 from fastapi import FastAPI
 
-from custom_logger import MyHandler
+from domain_logic.custom_logger import MyHandler
 
 
 # initial configurations

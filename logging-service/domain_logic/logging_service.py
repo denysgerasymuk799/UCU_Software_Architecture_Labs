@@ -1,7 +1,7 @@
 from fastapi import Request
 from fastapi.responses import JSONResponse
 
-from utils import use_response_template
+from domain_logic.utils import use_response_template
 from init_config import MESSAGES_MAP, logger
 
 

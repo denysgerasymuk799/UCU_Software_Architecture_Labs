@@ -6,8 +6,8 @@ from fastapi import FastAPI
 from domain_logic.custom_logger import MyHandler
 
 
-# initial configurations
-app = FastAPI(title='Facade-service')
+app = FastAPI(title='Message-service')
+MESSAGES_MAP = dict()
 
 # Start the Hazelcast Client and connect to an already running Hazelcast Cluster on 127.0.0.1
 hz = hazelcast.HazelcastClient(cluster_members=[
@@ -16,7 +16,7 @@ hz = hazelcast.HazelcastClient(cluster_members=[
     "127.0.0.1:5703"
 ])
 
-# Create event loop for asynchronous kafka producer
+# Create event loop for asynchronous kafka consumer
 kafka_loop = asyncio.get_event_loop()
 
 logger = logging.getLogger('root')

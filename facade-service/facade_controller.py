@@ -1,9 +1,9 @@
 from fastapi import Request
 from fastapi.responses import JSONResponse
 
-from utils import use_response_template, Message
 from init_config import app
-from facade_service import _get_messages, _add_message
+from domain_logic.utils import use_response_template, Message
+from domain_logic.facade_service import _get_messages, _add_message
 
 
 @app.exception_handler(Exception)

@@ -7,3 +7,6 @@ httpx
 aiohttp~=3.8.1
 pydantic~=1.9.0
 gunicorn
+hazelcast-python-client==5.1
+fastapi-utils==0.2.1
+aiokafka==0.7.2
