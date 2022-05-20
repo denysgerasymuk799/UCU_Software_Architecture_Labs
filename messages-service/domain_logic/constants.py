@@ -1,0 +1,3 @@
+MESSAGE_SVC_TOPIC = 'MessageSvcTopic'
+KAFKA_BROKER = '127.0.0.1:9092'
+KAFKA_CONSUMER_GROUP = 'MessageSvcConsumerGroup'

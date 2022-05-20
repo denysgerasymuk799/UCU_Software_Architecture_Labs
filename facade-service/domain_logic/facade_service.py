@@ -5,9 +5,10 @@ import httpx
 from fastapi import Request
 from fastapi.responses import JSONResponse
 
-from init_config import logger, queue
+from init_config import logger
 from domain_logic.constants import *
 from domain_logic.utils import use_response_template
+from domain_logic.kafka.service_producer import ServiceProducer
 
 
 async def get_request(client: httpx.AsyncClient, url: str):
@@ -44,12 +45,11 @@ async def _get_messages(request: Request):
     try:
         async with httpx.AsyncClient() as client:
             tasks = [get_request(client, url) for url in [logging_svc_url, message_svc_url]]
-            # tasks = [get_request(client, url) for url in [logging_svc_url]]
             responses = await asyncio.gather(*tasks)
     except Exception as err:
         responses = [{"component": 'ANY_COMPONENT', '_status_code': 400, 'error': err}]
 
-    # concatenate responses
+    # Concatenate responses
     for resp in responses:
         if resp['_status_code'] == 200:
             result_str += f'Response from {resp["component"]}: {resp["response"]}\n'
@@ -82,10 +82,15 @@ async def _add_message_in_logging_svc(msg_dict: dict):
 
 async def _add_message_in_message_svc(msg: str):
     try:
-        queue.offer(msg)
+        producer = ServiceProducer("ServiceProducer")
+        message_ = {
+            "message": msg
+        }
+        # Send a message to the topic, which is read by consumer group from Message service side
+        await producer.send(MESSAGE_SVC_TOPIC, message_)
         return 0
     except Exception as err:
-        logger.error(f'queue.offer error -- {err}')
+        logger.error(f'kafka producer.send error -- {err}')
         return -1
     
 
@@ -97,7 +102,7 @@ async def _add_message(msg: str):
 
     :return: JSON with status and response text
     """
-    # generate message dict for logging-service
+    # Generate message dict for logging-service
     msg_dict = {uuid.uuid1().__str__(): msg}
     logger.debug(f'Generated msg_dict: {msg_dict}')
 

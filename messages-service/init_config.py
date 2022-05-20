@@ -1,4 +1,5 @@
 import logging
+import asyncio
 import hazelcast
 from fastapi import FastAPI
 
@@ -15,8 +16,8 @@ hz = hazelcast.HazelcastClient(cluster_members=[
     "127.0.0.1:5703"
 ])
 
-# Get or create Distributed Queue
-queue = hz.get_queue("lab4-distributed-queue").blocking()
+# Create event loop for asynchronous kafka consumer
+kafka_loop = asyncio.get_event_loop()
 
 logger = logging.getLogger('root')
 logger.setLevel('INFO')

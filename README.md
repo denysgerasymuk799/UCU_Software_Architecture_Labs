@@ -20,6 +20,20 @@ hz start
 # Start Hazelcast management center
 hz-mc start
 
+# Download kafka zip locally from https://kafka.apache.org/downloads
+
+# Start zookeeper server
+zookeeper-server-start.sh config/zookeeper.properties
+
+# Start kafka bootstrap server
+kafka-server-start.sh config/server.properties
+
+# Create Kafka topics
+kafka-topics --zookeeper 127.0.0.1:2181  --topic MessageSvcTopic --create --partitions 3 --replication-factor 1
+
+# Example how to read messages from topics with Kafka consumer CLI
+kafka-console-consumer --bootstrap-server 127.0.0.1:9092 --topic MessageSvcTopic --from-beginning
+
 # Start facade-service with UI in PyCharm or with the next command
 UCU_Software_Architecture_Labs/facade-service $ uvicorn facade_controller:app --workers 2 --reload --port 8081
 
