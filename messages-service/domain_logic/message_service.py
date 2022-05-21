@@ -23,6 +23,8 @@ async def post_messages():
                 # https://stackoverflow.com/questions/48124257/python-equivalent-of-concurrenthashmap-from-java
                 MESSAGES_MAP[uuid.uuid1().__str__()] = msg
 
+            await consumer.commit()
+
     except Exception as err:
         logger.error(f'Consume error: {err}')
     finally:
