@@ -10,3 +10,4 @@ gunicorn
 hazelcast-python-client==5.1
 fastapi-utils==0.2.1
 aiokafka==0.7.2
+python-consul==1.1.0

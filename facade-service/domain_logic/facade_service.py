@@ -7,6 +7,7 @@ from fastapi.responses import JSONResponse
 
 from init_config import logger
 from domain_logic.constants import *
+from domain_logic.utils import get_all_service_urls
 from domain_logic.utils import use_response_template
 from domain_logic.kafka.service_producer import ServiceProducer
 
@@ -40,6 +41,8 @@ async def _get_messages(request: Request):
     random_message_svc_addr = random.choice([MESSAGES_SERVICE_ADDR_1, MESSAGES_SERVICE_ADDR_2])
     logging_svc_url = random_logging_svc_addr + LOGGING_SERVICE_GET_MSGS_ENTRYPOINT
     message_svc_url = random_message_svc_addr + MESSAGES_SERVICE_GET_MSGS_ENTRYPOINT
+
+    get_all_service_urls('logging_service')
 
     result_str = ""
     try:
