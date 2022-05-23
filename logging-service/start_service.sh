@@ -1,1 +1,1 @@
-uvicorn logging_controller:app --workers 2 --reload --port ${1}
+python logging_controller.py --host 127.0.0.1 --port ${1}

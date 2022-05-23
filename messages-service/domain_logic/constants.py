@@ -1,3 +1,4 @@
-MESSAGE_SVC_TOPIC = 'MessageSvcTopic'
-KAFKA_BROKER = '127.0.0.1:9092'
-KAFKA_CONSUMER_GROUP = 'MessageSvcConsumerGroup'
+# Consul KV keys
+MESSAGE_SVC_TOPIC_KEY = 'kafka/messages_svc_topic'
+KAFKA_BROKER_KEY = 'kafka/kafka_broker_1'
+KAFKA_CONSUMER_GROUP_KEY = 'kafka/consumer_group'

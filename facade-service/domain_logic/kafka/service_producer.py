@@ -2,7 +2,6 @@ import json
 from aiokafka import AIOKafkaProducer
 from kafka.errors import KafkaTimeoutError
 
-from domain_logic.constants import *
 from init_config import kafka_loop, logger
 
 
@@ -15,10 +14,10 @@ def error_callback(logger_name, topic):
 
 
 class ServiceProducer:
-    def __init__(self, logger_name):
+    def __init__(self, logger_name, kafka_broker_addr):
         self.__logger = logger_name
         self.__producer = AIOKafkaProducer(
-            bootstrap_servers=[KAFKA_BROKER],
+            bootstrap_servers=[kafka_broker_addr],
             value_serializer=lambda data: json.dumps(data).encode("utf-8"),
             loop=kafka_loop
         )

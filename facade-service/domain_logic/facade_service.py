@@ -1,12 +1,12 @@
-import random
 import uuid
+import random
 import asyncio
 import httpx
-from fastapi import Request
 from fastapi.responses import JSONResponse
 
 from init_config import logger
 from domain_logic.constants import *
+from domain_logic.utils import get_all_service_urls, get_consul_kv_value
 from domain_logic.utils import use_response_template
 from domain_logic.kafka.service_producer import ServiceProducer
 
@@ -30,26 +30,31 @@ async def post_request(client: httpx.AsyncClient, url: str, msg_dict: dict):
     return response.json()
 
 
-async def _get_messages(request: Request):
+async def _get_messages(consul_client):
     """
-    Get all messages from logging-service and response on GET request from message-service
+    Get all messages from logging-service and response on GET request from messages-service
 
     :return: Concatenated responses from services in JSON format
     """
-    random_logging_svc_addr = random.choice([LOGGING_SERVICE_ADDR_1, LOGGING_SERVICE_ADDR_2, LOGGING_SERVICE_ADDR_3])
-    random_message_svc_addr = random.choice([MESSAGES_SERVICE_ADDR_1, MESSAGES_SERVICE_ADDR_2])
-    logging_svc_url = random_logging_svc_addr + LOGGING_SERVICE_GET_MSGS_ENTRYPOINT
-    message_svc_url = random_message_svc_addr + MESSAGES_SERVICE_GET_MSGS_ENTRYPOINT
+    logging_service_addresses = get_all_service_urls(consul_client, service_name='logging_service')
+    messages_service_addresses = get_all_service_urls(consul_client, service_name='messages_service')
+
+    # Random balancing among instances of each microservice
+    random_logging_svc_addr = random.choice(logging_service_addresses)
+    random_message_svc_addr = random.choice(messages_service_addresses)
+    logging_svc_url = random_logging_svc_addr + get_consul_kv_value(consul_client, key=LOGGING_SERVICE_GET_MSGS_ENDPOINT_KEY)
+    message_svc_url = random_message_svc_addr + get_consul_kv_value(consul_client, key=MESSAGES_SERVICE_GET_MSGS_ENDPOINT_KEY)
 
     result_str = ""
     try:
+        # Async GET request on microservices
         async with httpx.AsyncClient() as client:
             tasks = [get_request(client, url) for url in [logging_svc_url, message_svc_url]]
             responses = await asyncio.gather(*tasks)
     except Exception as err:
         responses = [{"component": 'ANY_COMPONENT', '_status_code': 400, 'error': err}]
 
-    # Concatenate responses
+    # Concatenate responses from microservices and return main response to user
     for resp in responses:
         if resp['_status_code'] == 200:
             result_str += f'Response from {resp["component"]}: {resp["response"]}\n'
@@ -65,11 +70,13 @@ async def _get_messages(request: Request):
     return JSONResponse(content=response, status_code=status)
 
 
-async def _add_message_in_logging_svc(msg_dict: dict):
-    random_logging_addr = random.choice([LOGGING_SERVICE_ADDR_1, LOGGING_SERVICE_ADDR_2, LOGGING_SERVICE_ADDR_3])
-    url = random_logging_addr + LOGGING_SERVICE_ADD_MSG_ENTRYPOINT
+async def _add_message_in_logging_svc(consul_client, msg_dict: dict):
+    logging_service_addresses = get_all_service_urls(consul_client, service_name='logging_service')
+    random_logging_addr = random.choice(logging_service_addresses)
+    url = random_logging_addr + get_consul_kv_value(consul_client, key=LOGGING_SERVICE_ADD_MSG_ENDPOINT_KEY)
 
     try:
+        # Async POST request
         async with httpx.AsyncClient() as client:
             tasks = [post_request(client, url, msg_dict)]
             responses = await asyncio.gather(*tasks)
@@ -80,21 +87,22 @@ async def _add_message_in_logging_svc(msg_dict: dict):
     return responses
 
 
-async def _add_message_in_message_svc(msg: str):
+async def _add_message_in_message_svc(consul_client, msg: str):
     try:
-        producer = ServiceProducer("ServiceProducer")
+        producer = ServiceProducer("ServiceProducer",
+                                   kafka_broker_addr=get_consul_kv_value(consul_client, key=KAFKA_BROKER_KEY))
         message_ = {
             "message": msg
         }
         # Send a message to the topic, which is read by consumer group from Message service side
-        await producer.send(MESSAGE_SVC_TOPIC, message_)
+        await producer.send(get_consul_kv_value(consul_client, key=MESSAGE_SVC_TOPIC_KEY), message_)
         return 0
     except Exception as err:
         logger.error(f'kafka producer.send error -- {err}')
         return -1
     
 
-async def _add_message(msg: str):
+async def _add_message(consul_client, msg: str):
     """
     Add a message to in-memory dict in logging-service.
     Note if input message type is numeric, so it will be casted to string,
@@ -106,8 +114,8 @@ async def _add_message(msg: str):
     msg_dict = {uuid.uuid1().__str__(): msg}
     logger.debug(f'Generated msg_dict: {msg_dict}')
 
-    logging_svc_responses = await _add_message_in_logging_svc(msg_dict)
-    message_svc_response = await _add_message_in_message_svc(msg)
+    logging_svc_responses = await _add_message_in_logging_svc(consul_client, msg_dict)
+    message_svc_response = await _add_message_in_message_svc(consul_client, msg)
 
     if logging_svc_responses[0]['_status_code'] == 200 and message_svc_response == 0:
         status = 200
