@@ -88,7 +88,7 @@ async def _add_message_in_logging_svc(consul_client, msg_dict: dict):
 
 async def _add_message_in_message_svc(msg: str):
     try:
-        producer = ServiceProducer("ServiceProducer")
+        producer = ServiceProducer("ServiceProducer", kafka_broker_addr=get_consul_kv_value(consul_client, key=KAFKA_BROKER_KEY))
         message_ = {
             "message": msg
         }

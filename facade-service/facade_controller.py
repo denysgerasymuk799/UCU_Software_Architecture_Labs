@@ -4,14 +4,17 @@ import consul
 import hazelcast
 from pprint import pprint
 
-from fastapi import FastAPI, Request, APIRouter, Depends
+from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 
-from domain_logic.utils import use_response_template, Message, get_all_service_urls, add_service_to_consul, get_consul_kv_value
+from domain_logic.utils import use_response_template, Message, get_all_service_urls, get_consul_kv_value
 from domain_logic.facade_service import _get_messages, _add_message
 
 
+# Initial configurations
 app = FastAPI(title='Facade-service')
+SERVICE_NAME = 'facade-service'
+SERVICE_ID = f'{SERVICE_NAME}_{uuid.uuid1().__str__()}'
 
 
 @app.exception_handler(Exception)
@@ -51,6 +54,7 @@ async def add_message(msg: Message):
 @app.on_event("shutdown")
 def shutdown_event():
     print("Start handler for shutdown event...")
+    consul_client.agent.service.deregister(SERVICE_ID)
 
 
 if __name__ == '__main__':
@@ -66,22 +70,21 @@ if __name__ == '__main__':
         host='127.0.0.1',
         port=8500
     )
-    # consul_client.catalog.register(
-    #     node='EPUALVIW07D6',
-    #     address='127.0.0.1'
-    # )
-    # consul_client.agent.service.register(
-    #     name='facade-service',
-    #     service_id=''
-    # )
-    pprint(consul_client.catalog.nodes())
-    pprint(consul_client.catalog.services())
+    host_ip = get_consul_kv_value(consul_client, key='facade_service/host_ip')
 
-    service_uuid = uuid.uuid1()
-    service_key = 'facade_service/facade_service_' + service_uuid.__str__()
-    host_ip = get_consul_kv_value(consul_client, key='hz_distributed_map')
-    add_service_to_consul(consul_client, 'facade_service/facade_service_', service_key,
-                          service_address=f'http://{host_ip}:{args.service_port}')
+    consul_client.agent.service.register(
+        name=SERVICE_NAME,
+        service_id=SERVICE_ID,
+        address=host_ip,
+        port=args.service_port,
+        # check=consul.Check.http(url=f'{host_ip}:{args.service_port}', interval='30s')
+    )
+    pprint(consul_client.catalog.service(service=SERVICE_NAME))
+
+    # service_uuid = uuid.uuid1()
+    # service_key = 'facade_service/facade_service_' + service_uuid.__str__()
+    # add_service_to_consul(consul_client, 'facade_service/facade_service_', service_key,
+    #                       service_address=f'{host_ip}:{args.service_port}')
 
     # Start the Hazelcast Client and connect to an already running Hazelcast Cluster
     cluster_members_addresses = get_all_service_urls(consul_client, service_name='hazelcast/hz_node')

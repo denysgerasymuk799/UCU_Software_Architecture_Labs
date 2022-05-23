@@ -1,5 +1,5 @@
 # ======================== Microservices configs ========================
-host_ip="127.0.0.1"
+host_ip="http://127.0.0.1"
 
 consul kv put facade_service/host_ip ${host_ip}
 consul kv put logging_service/host_ip ${host_ip}
