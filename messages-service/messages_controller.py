@@ -26,12 +26,12 @@ consul_client = consul.Consul(
     port=8500
 )
 
+# Register a new instance of service in Consul
 consul_client.agent.service.register(
     name=SERVICE_NAME,
     service_id=SERVICE_ID,
     address=os.getenv('ADDRESS'),
     port=int(os.getenv('PORT')),
-    # check=consul.Check.http(url=f'{host_ip}:{args.service_port}', interval='30s')
 )
 
 # Start the Hazelcast Client and connect to an already running Hazelcast Cluster

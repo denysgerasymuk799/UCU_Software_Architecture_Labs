@@ -11,6 +11,7 @@ from domain_logic.utils import use_response_template, Message, get_all_service_u
 from domain_logic.facade_service import _get_messages, _add_message
 
 
+# Load env file with PORT and ADDRESS
 load_dotenv(dotenv_path='./facade_service.env')
 
 # Initial configurations
@@ -24,12 +25,12 @@ consul_client = consul.Consul(
     port=8500
 )
 
+# Register a new instance of service in Consul
 consul_client.agent.service.register(
     name=SERVICE_NAME,
     service_id=SERVICE_ID,
     address=os.getenv('ADDRESS'),
     port=int(os.getenv('PORT')),
-    # check=consul.Check.http(url=f'{host_ip}:{args.service_port}', interval='30s')
 )
 
 # Start the Hazelcast Client and connect to an already running Hazelcast Cluster

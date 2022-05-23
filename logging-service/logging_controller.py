@@ -58,27 +58,19 @@ if __name__ == '__main__':
         port=8500
     )
 
-    # service_uuid = uuid.uuid1()
-    # service_key = 'logging_service/logging_service_' + service_uuid.__str__()
-    # host_ip = get_consul_kv_value(consul_client, key='logging_service/host_ip')
-    # add_service_to_consul(consul_client, 'logging_service/logging_service_', service_key,
-    #                       service_address=f'{host_ip}:{args.service_port}{api_root_path}')
-
-    # host_ip = get_consul_kv_value(consul_client, key='facade_service/host_ip')
-
+    # Register a new instance of service in Consul
     consul_client.agent.service.register(
         name=SERVICE_NAME,
         service_id=SERVICE_ID,
         address=args.host,
-        port=args.port,
-        # check=consul.Check.http(url=f'{host_ip}:{args.service_port}', interval='30s')
+        port=args.port
     )
 
     # Start the Hazelcast Client and connect to an already running Hazelcast Cluster
     cluster_members_addresses = get_all_service_urls(consul_client, service_name='hazelcast/hz_node')
     hz = hazelcast.HazelcastClient(cluster_members=cluster_members_addresses)
 
-    # Create Distributed Map
+    # Create or get Distributed Map
     distributed_map_name = get_consul_kv_value(consul_client, key='hazelcast/hz_distributed_map')
     MESSAGES_MAP = hz.get_map(distributed_map_name).blocking()
 

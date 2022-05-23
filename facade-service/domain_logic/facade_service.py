@@ -38,9 +38,8 @@ async def _get_messages(consul_client):
     """
     logging_service_addresses = get_all_service_urls(consul_client, service_name='logging_service')
     messages_service_addresses = get_all_service_urls(consul_client, service_name='messages_service')
-    print('logging_service_addresses -- ', logging_service_addresses)
-    print('messages_service_addresses -- ', messages_service_addresses)
 
+    # Random balancing among instances of each microservice
     random_logging_svc_addr = random.choice(logging_service_addresses)
     random_message_svc_addr = random.choice(messages_service_addresses)
     logging_svc_url = random_logging_svc_addr + get_consul_kv_value(consul_client, key=LOGGING_SERVICE_GET_MSGS_ENDPOINT_KEY)
@@ -48,13 +47,14 @@ async def _get_messages(consul_client):
 
     result_str = ""
     try:
+        # Async GET request on microservices
         async with httpx.AsyncClient() as client:
             tasks = [get_request(client, url) for url in [logging_svc_url, message_svc_url]]
             responses = await asyncio.gather(*tasks)
     except Exception as err:
         responses = [{"component": 'ANY_COMPONENT', '_status_code': 400, 'error': err}]
 
-    # Concatenate responses
+    # Concatenate responses from microservices and return main response to user
     for resp in responses:
         if resp['_status_code'] == 200:
             result_str += f'Response from {resp["component"]}: {resp["response"]}\n'
@@ -72,12 +72,11 @@ async def _get_messages(consul_client):
 
 async def _add_message_in_logging_svc(consul_client, msg_dict: dict):
     logging_service_addresses = get_all_service_urls(consul_client, service_name='logging_service')
-    print('logging_service_addresses -- ', logging_service_addresses)
     random_logging_addr = random.choice(logging_service_addresses)
     url = random_logging_addr + get_consul_kv_value(consul_client, key=LOGGING_SERVICE_ADD_MSG_ENDPOINT_KEY)
-    print('url -- ', url)
 
     try:
+        # Async POST request
         async with httpx.AsyncClient() as client:
             tasks = [post_request(client, url, msg_dict)]
             responses = await asyncio.gather(*tasks)
@@ -90,7 +89,8 @@ async def _add_message_in_logging_svc(consul_client, msg_dict: dict):
 
 async def _add_message_in_message_svc(consul_client, msg: str):
     try:
-        producer = ServiceProducer("ServiceProducer", kafka_broker_addr=get_consul_kv_value(consul_client, key=KAFKA_BROKER_KEY))
+        producer = ServiceProducer("ServiceProducer",
+                                   kafka_broker_addr=get_consul_kv_value(consul_client, key=KAFKA_BROKER_KEY))
         message_ = {
             "message": msg
         }
@@ -116,9 +116,6 @@ async def _add_message(consul_client, msg: str):
 
     logging_svc_responses = await _add_message_in_logging_svc(consul_client, msg_dict)
     message_svc_response = await _add_message_in_message_svc(consul_client, msg)
-
-    print('logging_svc_responses -- ', logging_svc_responses)
-    print('message_svc_response -- ', message_svc_response)
 
     if logging_svc_responses[0]['_status_code'] == 200 and message_svc_response == 0:
         status = 200

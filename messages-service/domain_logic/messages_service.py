@@ -8,6 +8,9 @@ from domain_logic.utils import get_consul_kv_value
 
 
 async def post_messages(consul_client):
+    """
+    Consume messages from topic and save in local in-memory map
+    """
     consumer = AIOKafkaConsumer(get_consul_kv_value(consul_client, key=MESSAGE_SVC_TOPIC_KEY),
                                 loop=kafka_loop,
                                 bootstrap_servers=[get_consul_kv_value(consul_client, key=KAFKA_BROKER_KEY)],
