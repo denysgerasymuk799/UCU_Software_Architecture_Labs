@@ -1,13 +1,11 @@
 # ======================== Microservices configs ========================
-host_ip="http://127.0.0.1"
+host_ip="127.0.0.1"
 
-consul kv put facade_service/host_ip ${host_ip}
-consul kv put logging_service/host_ip ${host_ip}
-consul kv put messages_service/host_ip ${host_ip}
-
+consul kv put logging_service/api_root_path '/logging-svc/api/v1.0'
 consul kv put logging_service/get_msgs_endpoint '/get_messages'
 consul kv put logging_service/add_msg_endpoint '/add_message'
 
+consul kv put messages_service/api_root_path '/message-svc/api/v1.0'
 consul kv put messages_service/get_msgs_endpoint '/get_messages'
 consul kv put messages_service/add_msg_endpoint '/add_message'
 
@@ -32,7 +30,7 @@ consul kv put hazelcast/hz_distributed_map 'lab3_distributed_map1'
 
 
 # ======================== Kafka configs ========================
-consul kv delete -recurse 'kafka/kafka_broker_1'
+consul kv delete 'kafka/kafka_broker_1'
 
 kafka_broker_name1="kafka/kafka_broker_1"
 consul kv put ${kafka_broker_name1} "${host_ip}:9092"

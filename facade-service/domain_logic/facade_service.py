@@ -32,14 +32,14 @@ async def post_request(client: httpx.AsyncClient, url: str, msg_dict: dict):
 
 async def _get_messages(consul_client):
     """
-    Get all messages from logging-service and response on GET request from message-service
+    Get all messages from logging-service and response on GET request from messages-service
 
     :return: Concatenated responses from services in JSON format
     """
     logging_service_addresses = get_all_service_urls(consul_client, service_name='logging_service')
     messages_service_addresses = get_all_service_urls(consul_client, service_name='messages_service')
     print('logging_service_addresses -- ', logging_service_addresses)
-    print('message_service_addresses -- ', messages_service_addresses)
+    print('messages_service_addresses -- ', messages_service_addresses)
 
     random_logging_svc_addr = random.choice(logging_service_addresses)
     random_message_svc_addr = random.choice(messages_service_addresses)

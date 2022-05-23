@@ -1,1 +1,1 @@
-python facade_controller.py ${1}
+python facade_controller.py --host 127.0.0.1 --port ${1}

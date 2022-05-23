@@ -1,1 +1,1 @@
-python init_config.py ${1}
+python logging_controller.py --host 127.0.0.1 --port ${1}

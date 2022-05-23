@@ -7,7 +7,8 @@ def use_response_template(status, resp_msg):
 
 
 def get_consul_kv_value(consul_client, key):
-    return consul_client.kv.get(key)['Value'].decode('utf-8')
+    index, data = consul_client.kv.get(key, index=None)
+    return data['Value'].decode('utf-8')
 
 
 def get_all_service_urls(consul_client, service_name):

@@ -55,7 +55,7 @@ Accept: text/json
 
 
 
-### Test message-service
+### Test messages-service
 GET http://localhost:8082/message-svc/api/v1.0/get_messages
 Accept: text/json
 ###

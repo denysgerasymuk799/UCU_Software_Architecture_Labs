@@ -4,13 +4,14 @@ from aiokafka import AIOKafkaConsumer
 
 from init_config import logger, MESSAGES_MAP, kafka_loop
 from domain_logic.constants import *
+from domain_logic.utils import get_consul_kv_value
 
 
-async def post_messages():
-    consumer = AIOKafkaConsumer(MESSAGE_SVC_TOPIC,
+async def post_messages(consul_client):
+    consumer = AIOKafkaConsumer(get_consul_kv_value(consul_client, key=MESSAGE_SVC_TOPIC_KEY),
                                 loop=kafka_loop,
-                                bootstrap_servers=[KAFKA_BROKER],
-                                group_id=KAFKA_CONSUMER_GROUP)
+                                bootstrap_servers=[get_consul_kv_value(consul_client, key=KAFKA_BROKER_KEY)],
+                                group_id=get_consul_kv_value(consul_client, key=KAFKA_CONSUMER_GROUP_KEY))
     await consumer.start()
     try:
         async for record in consumer:
