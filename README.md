@@ -27,7 +27,7 @@ consul agent -dev
 # Add configs for Kafka and Hazelcast to Key-Value storage in Consul
 UCU_Software_Architecture_Labs $ bash consul_registr_init_configs.sh
 
-# Start 3 nodes of Hazelcast
+# Start 1 node of Hazelcast
 hz start
 
 # Start Hazelcast management center. To access it go to http://localhost:8080
@@ -53,7 +53,8 @@ kafka-console-consumer --bootstrap-server 127.0.0.1:9092 --topic MessageSvcTopic
 ## How to run the project
 
 ```shell
-# Firstly, enter virtual envs in each terminal to run the next microservices
+# Firstly, enter virtual envs in each terminal to run the next microservices and
+# install packages with -- pip install -r requirements.txt
 
 # Start facade-service with UI in PyCharm or with the next command
 UCU_Software_Architecture_Labs/facade-service $ bash start_service.sh 8081
