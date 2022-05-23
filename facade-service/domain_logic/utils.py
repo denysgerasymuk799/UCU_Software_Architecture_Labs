@@ -1,4 +1,5 @@
 from pydantic import BaseModel
+from pprint import pprint
 
 
 class Message(BaseModel):
@@ -14,12 +15,21 @@ def use_response_template(status, resp_msg):
 
 def get_consul_kv_value(consul_client, key):
     index, data = consul_client.kv.get(key, index=None)
-    return data['Value'].decode('utf-8')
+    if data:
+        return data['Value'].decode('utf-8')
+    return None
 
 
 def get_all_service_urls(consul_client, service_name):
-    index, data = consul_client.kv.get(service_name, index=None, recurse=True)
-    ip_addresses = [item['Value'].decode('utf-8') for item in data]
+    index, data = consul_client.catalog.service(service_name)
+    print(f'{service_name}/api_root_path')
+    api_root_path = get_consul_kv_value(consul_client, key=f'{service_name}/api_root_path')
+    print('api_root_path -- ', api_root_path)
+    pprint(data)
+    if api_root_path:
+        ip_addresses = [f"http://{item['ServiceAddress']}:{int(item['ServicePort'])}{api_root_path}" for item in data]
+    else:
+        ip_addresses = [f"http://{item['ServiceAddress']}:{int(item['ServicePort'])}" for item in data]
     return ip_addresses
 
 

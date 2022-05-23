@@ -72,8 +72,10 @@ async def _get_messages(consul_client):
 
 async def _add_message_in_logging_svc(consul_client, msg_dict: dict):
     logging_service_addresses = get_all_service_urls(consul_client, service_name='logging_service')
+    print('logging_service_addresses -- ', logging_service_addresses)
     random_logging_addr = random.choice(logging_service_addresses)
     url = random_logging_addr + get_consul_kv_value(consul_client, key=LOGGING_SERVICE_ADD_MSG_ENDPOINT_KEY)
+    print('url -- ', url)
 
     try:
         async with httpx.AsyncClient() as client:
@@ -86,7 +88,7 @@ async def _add_message_in_logging_svc(consul_client, msg_dict: dict):
     return responses
 
 
-async def _add_message_in_message_svc(msg: str):
+async def _add_message_in_message_svc(consul_client, msg: str):
     try:
         producer = ServiceProducer("ServiceProducer", kafka_broker_addr=get_consul_kv_value(consul_client, key=KAFKA_BROKER_KEY))
         message_ = {
@@ -113,7 +115,10 @@ async def _add_message(consul_client, msg: str):
     logger.debug(f'Generated msg_dict: {msg_dict}')
 
     logging_svc_responses = await _add_message_in_logging_svc(consul_client, msg_dict)
-    message_svc_response = await _add_message_in_message_svc(msg)
+    message_svc_response = await _add_message_in_message_svc(consul_client, msg)
+
+    print('logging_svc_responses -- ', logging_svc_responses)
+    print('message_svc_response -- ', message_svc_response)
 
     if logging_svc_responses[0]['_status_code'] == 200 and message_svc_response == 0:
         status = 200

@@ -28,6 +28,7 @@ class ServiceProducer:
             await self.__producer.send_and_wait(topic=topic, value=message)
             success_callback(self.__logger, topic)
             await self.__producer.stop()
+            print('after stop()')
 
         # If unable to fetch topic metadata, or unable to obtain memory buffer
         except KafkaTimeoutError:

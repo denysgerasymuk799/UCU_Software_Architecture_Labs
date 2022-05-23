@@ -17,7 +17,7 @@ from domain_logic.utils import get_all_service_urls
 load_dotenv(dotenv_path='./messages_service.env')
 
 app = FastAPI(title='Messages-service')
-SERVICE_NAME = 'messages-service'
+SERVICE_NAME = 'messages_service'
 SERVICE_ID = f'{SERVICE_NAME}_{uuid.uuid1().__str__()}'
 
 # Configure consul values

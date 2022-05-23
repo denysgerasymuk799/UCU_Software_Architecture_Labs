@@ -13,7 +13,7 @@ from domain_logic.utils import get_all_service_urls, get_consul_kv_value
 # Initial configurations
 app = FastAPI(title='Logging-service')
 
-SERVICE_NAME = 'logging-service'
+SERVICE_NAME = 'logging_service'
 SERVICE_ID = f'{SERVICE_NAME}_{uuid.uuid1().__str__()}'
 
 
