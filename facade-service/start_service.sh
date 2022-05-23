@@ -1,1 +1,1 @@
-uvicorn facade_controller:app --workers 2 --reload --port 8081
+python facade_controller.py ${1}

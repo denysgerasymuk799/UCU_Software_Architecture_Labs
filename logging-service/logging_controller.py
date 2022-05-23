@@ -22,8 +22,3 @@ async def add_message(msg_dict: dict):
     :return: JSON with status and response text
     """
     return await _add_message(msg_dict)
-
-
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, port=8091)

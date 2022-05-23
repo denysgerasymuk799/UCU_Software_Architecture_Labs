@@ -3,7 +3,7 @@ from fastapi.responses import JSONResponse
 
 from init_config import app, MESSAGES_MAP
 from domain_logic.utils import use_response_template
-from domain_logic.message_service import post_messages
+from domain_logic.messages_service import post_messages
 
 
 # Start async task to consume from topic

@@ -10,6 +10,13 @@
 
 ✅ **Lab 4:** Microservices with Messaging queue
 
+**Lab 5:** Microservices using Service Discovery and Config Server based on Consul
+
+
+## Project architecture
+
+![Project Architecture](./project_architecture.png)
+
 
 ## Configurations
 

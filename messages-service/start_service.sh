@@ -1,1 +1,1 @@
-uvicorn message_controller:app --workers 4 --reload --port ${1}
+python init_config.py ${1}
